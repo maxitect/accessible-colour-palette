@@ -2,16 +2,18 @@ body, html {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: "Quicksand", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
     background: #f0f0f0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
 }
 
-header {
-    text-align: center;
-    padding: 20px;
+h1, h5 {
+    font-weight: 300;
 }
 
 .color-container {
