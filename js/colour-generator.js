@@ -76,8 +76,8 @@ function hslToRgb(h, s, l) {
 
 // Function to calculate the difference between 2 colours based on delta E
 function deltaE(rgbA, rgbB) {
-    let labA = rgb2lab(rgbA);
-    let labB = rgb2lab(rgbB);
+    let labA = rgbToLab(rgbA);
+    let labB = rgbToLab(rgbB);
     let deltaL = labA[0] - labB[0];
     let deltaA = labA[1] - labB[1];
     let deltaB = labA[2] - labB[2];
@@ -96,7 +96,7 @@ function deltaE(rgbA, rgbB) {
   }
   
 // Function to convert RGB to lab
-  function rgb2lab(rgb){
+  function rgbToLab(rgb){
     let r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, x, y, z;
     r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
     g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
@@ -158,15 +158,15 @@ function generateColorScheme(baseColor = null) {
     colors.push(secondRgb);
 
     const secondHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
-    const thirdRgb = generateHarmonyOptions(secondRgb, colors, secondHarmony);
+    const thirdRgb = generateHarmonyOptions(colors[Math.floor(Math.random()*colors.length)], colors, secondHarmony);
     colors.push(thirdRgb);
 
     const scheme = {
         colors: colors.map(rgb => rgbToHex(...rgb)),
         names: [
-            'Whisper of ' + getColorName(baseRgb),
-            'Echo of ' + getColorName(secondRgb),
-            'Shadow of ' + getColorName(thirdRgb)
+            getColorName(baseRgb),
+            getColorName(secondRgb),
+            getColorName(thirdRgb)
         ]
     };
 
