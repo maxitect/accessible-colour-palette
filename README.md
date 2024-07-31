@@ -10,31 +10,31 @@ A colour palette generator that takes accessibility into account, giving the use
 Colarity
 
 ### List of options:
-Contrast Creator
-Accessible Palette
-ColorClarity
-Contrast Compass
-Hue Harmony
-Inclusive Colors
-VisiPalette
-A11y Shades
-ContrastCraft
-ColorBlend
-ColorGuard
-ShadeSense
-ContrastWizard
-ColorEase
-AccessiBlend
-Visibility Palette
-ToneTuner
-ColorMingle
-SafeShade
-ContrastMatic
-Accessible Hues
-ColorCheckMate
-HueSafe
-Contrast Vision
-Inclusive Palettes
+* Contrast Creator
+* Accessible Palette
+* ColorClarity
+* Contrast Compass
+* Hue Harmony
+* Inclusive Colors
+* VisiPalette
+* A11y Shades
+* ContrastCraft
+* ColorBlend
+* ColorGuard
+* ShadeSense
+* ContrastWizard
+* ColorEase
+* AccessiBlend
+* Visibility Palette
+* ToneTuner
+* ColorMingle
+* SafeShade
+* ContrastMatic
+* Accessible Hues
+* ColorCheckMate
+* HueSafe
+* Contrast Vision
+* Inclusive Palettes
 
 ## Calculations
 
