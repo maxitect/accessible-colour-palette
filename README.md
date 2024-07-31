@@ -39,11 +39,11 @@ Colarity
 ## Calculations
 
 ### Relative Luminance
-With RGB colour:
-L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+With RGB colour:\
+L = 0.2126 * R + 0.7152 * G + 0.0722 * B\
 [More info here](https://www.w3.org/WAI/GL/wiki/Relative_luminance)
 
 ### Contrast Ratio
-Between 2 colours of relative luminance L1 and L2:
-(L1 + 0.05) / (L2 + 0.05)
+Between 2 colours of relative luminance L1 and L2:\
+(L1 + 0.05) / (L2 + 0.05)\
 [More info here](https://www.accessibility-developer-guide.com/knowledge/colours-and-contrast/how-to-calculate/)
