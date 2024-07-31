@@ -44,7 +44,7 @@ function rgbToHsl(r, g, b) {
         }
         h /= 6;
     }
-
+    console.log(h);
     return [h, s, l];
 }
 
@@ -110,38 +110,34 @@ function deltaE(rgbA, rgbB) {
     return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)]
   }
 
-// Function to check if a color is sufficiently distinct from all others in the scheme
-function isDistinctColor(newColor, existingColors) {
-    return existingColors.every(existingColor => deltaE(newColor, existingColor) > 5);
-}
-
 // Function to generate harmony options and ensure they are not too similar to existing colors
-function generateHarmonyOptions(baseRgb, existingColors, harmony) {
+function generateHarmonyOptions(baseRgb, existingColors) {
     const [h, s, l] = rgbToHsl(baseRgb[0], baseRgb[1], baseRgb[2]);
-    let options = [];
-    switch(harmony) {
-        case 'complementary':
-            options.push(hslToRgb((h + 0.5) % 1, s, l));
+    const hueAdjust = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.25, 0.75, 1/3, 2/3];
+    let newColour, tries = 0;
+
+    while (tries < 20) {
+        console.log(tries);
+        newColour = hslToRgb((h + hueAdjust[Math.floor(Math.random() * hueAdjust.length)]) % 1, s, l);
+        let distinct = true; // Assume the new color is distinct unless proven otherwise
+
+        // Check the new color against all existing colors
+        for (let i = 0; i < existingColors.length; i++) {
+            if (deltaE(newColour, existingColors[i]) <= 40) {
+                distinct = false; // If similar, mark as not distinct
+                break; // Stop checking as one failure is enough to retry
+            }
+        }
+
+        if (distinct) {
+            // If the color is distinct from all others, break the loop
             break;
-        case 'triadic':
-            options.push(hslToRgb((h + 1 / 3) % 1, s, l));
-            options.push(hslToRgb((h + 2 / 3) % 1, s, l));
-            break;
-        case 'tetradic':
-            options.push(hslToRgb((h + 0.25) % 1, s, l));
-            options.push(hslToRgb((h + 0.5) % 1, s, l));
-            options.push(hslToRgb((h + 0.75) % 1, s, l));
-            break;
-        case 'square':
-            options.push(hslToRgb((h + 0.25) % 1, s, l));
-            options.push(hslToRgb((h + 0.5) % 1, s, l));
-            options.push(hslToRgb((h + 0.75) % 1, s, l));
-            break;
+        }
+
+        tries++; // Increment tries to prevent infinite loops
     }
-    // Filter options that are too similar to existing colors
-    options = options.filter(option => isDistinctColor(option, existingColors));
-    // Randomly select one of the options if any remain
-    return options.length > 0 ? options[Math.floor(Math.random() * options.length)] : baseRgb;
+
+    return tries < 20 ? newColour : hexToRgb(getRandomColor());
 }
 
 // Function to generate a color scheme
@@ -150,15 +146,15 @@ function generateColorScheme(baseColor = null) {
     const baseRgb = hexToRgb(baseHexColor);
 
     let colors = [baseRgb];  // Array to store all RGB values for distinctness checking
-    const harmonies = ['complementary', 'triadic', 'tetradic', 'square'];
+    const harmonies = ['complementary', 'triadic', 'tetradic', 'hue'];
 
     // Generate second and third colors ensuring they are distinct from previous colors
-    const baseHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
-    const secondRgb = generateHarmonyOptions(baseRgb, colors, baseHarmony);
+    //const baseHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+    const secondRgb = generateHarmonyOptions(baseRgb, colors);
     colors.push(secondRgb);
 
-    const secondHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
-    const thirdRgb = generateHarmonyOptions(colors[Math.floor(Math.random()*colors.length)], colors, secondHarmony);
+    //const secondHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+    const thirdRgb = generateHarmonyOptions(colors[Math.floor(Math.random()*colors.length)], colors);
     colors.push(thirdRgb);
 
     const scheme = {
@@ -192,7 +188,8 @@ const colorScheme = generateColorScheme(userInputColor);
 
 // Iterating through the colorScheme object to print each color with its name
 for (let i = 0; i < colorScheme.colors.length; i++) {
-    console.log(`${colorScheme.names[i]}: ${colorScheme.colors[i]}`);
+    const rgbCol = hexToRgb(colorScheme.colors[i]);
+    console.log(`${colorScheme.names[i]}: ${colorScheme.colors[i]} ${rgbToHsl(rgbCol[0],rgbCol[1],rgbCol[2])}`);
 }
 
 // Apply colors and names to HTML elements
