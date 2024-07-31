@@ -74,132 +74,102 @@ function hslToRgb(h, s, l) {
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
-// Function to find complementary color
-function getComplementaryColor(rgb) {
-    const [r, g, b] = rgb;
-    return [255 - r, 255 - g, 255 - b];
+// Function to calculate the distance between two colors
+function colorDistance(rgb1, rgb2) {
+    return Math.sqrt(Math.pow(rgb1[0] - rgb2[0], 2) + Math.pow(rgb1[1] - rgb2[1], 2) + Math.pow(rgb1[2] - rgb2[2], 2));
 }
 
-// Function to find split-complementary colors
-function getSplitComplementaryColors(rgb) {
-    const [r, g, b] = rgb;
-    const [h, s, l] = rgbToHsl(r, g, b);
-
-    const splitHue1 = (h + 5 / 12) % 1; // 150 degrees
-    const splitHue2 = (h - 5 / 12 + 1) % 1; // -150 degrees
-
-    const splitColor1 = hslToRgb(splitHue1, s, l);
-    const splitColor2 = hslToRgb(splitHue2, s, l);
-
-    return [splitColor1, splitColor2];
+// Function to check if a color is sufficiently distinct from all others in the scheme
+function isDistinctColor(newColor, existingColors) {
+    return existingColors.every(existingColor => colorDistance(newColor, existingColor) > 75);
 }
 
-// Function to find triadic colors
-function getTriadicColors(rgb) {
-    const [r, g, b] = rgb;
-    const [h, s, l] = rgbToHsl(r, g, b);
-
-    const triadHue1 = (h + 1 / 3) % 1;
-    const triadHue2 = (h + 2 / 3) % 1;
-
-    const triadicColor1 = hslToRgb(triadHue1, s, l);
-    const triadicColor2 = hslToRgb(triadHue2, s, l);
-
-    return [triadicColor1, triadicColor2];
+// Function to generate harmony options and ensure they are not too similar to existing colors
+function generateHarmonyOptions(baseRgb, existingColors, harmony) {
+    const [h, s, l] = rgbToHsl(baseRgb[0], baseRgb[1], baseRgb[2]);
+    let options = [];
+    switch(harmony) {
+        case 'complementary':
+            options.push(hslToRgb((h + 0.5) % 1, s, l));
+            break;
+        case 'triadic':
+            options.push(hslToRgb((h + 1 / 3) % 1, s, l));
+            options.push(hslToRgb((h + 2 / 3) % 1, s, l));
+            break;
+        case 'tetradic':
+            options.push(hslToRgb((h + 0.25) % 1, s, l));
+            options.push(hslToRgb((h + 0.5) % 1, s, l));
+            options.push(hslToRgb((h + 0.75) % 1, s, l));
+            break;
+        case 'square':
+            options.push(hslToRgb((h + 0.25) % 1, s, l));
+            options.push(hslToRgb((h + 0.5) % 1, s, l));
+            options.push(hslToRgb((h + 0.75) % 1, s, l));
+            break;
+    }
+    // Filter options that are too similar to existing colors
+    options = options.filter(option => isDistinctColor(option, existingColors));
+    // Randomly select one of the options if any remain
+    return options.length > 0 ? options[Math.floor(Math.random() * options.length)] : baseRgb;
 }
 
-// Function to find tetradic colors
-function getTetradicColors(rgb) {
-    const [r, g, b] = rgb;
-    const [h, s, l] = rgbToHsl(r, g, b);
-
-    const tetradHue1 = (h + 1 / 4) % 1;
-    const tetradHue2 = (h + 1 / 2) % 1;
-
-    const tetradicColor1 = hslToRgb(tetradHue1, s, l);
-    const tetradicColor2 = hslToRgb(tetradHue2, s, l);
-
-    return [tetradicColor1, tetradicColor2];
-}
-
-// Function to find square colors
-function getSquareColors(rgb) {
-    const [r, g, b] = rgb;
-    const [h, s, l] = rgbToHsl(r, g, b);
-
-    const squareHue1 = (h + 1 / 4) % 1;
-    const squareHue2 = (h + 1 / 2) % 1;
-    const squareHue3 = (h + 3 / 4) % 1;
-
-    const squareColor1 = hslToRgb(squareHue1, s, l);
-    const squareColor2 = hslToRgb(squareHue2, s, l);
-    const squareColor3 = hslToRgb(squareHue3, s, l);
-
-    return [squareColor1, squareColor2, squareColor3];
-}
-
-// Function to generate a color scheme based on a chosen method
+// Function to generate a color scheme
 function generateColorScheme(baseColor = null) {
-    // Determine the base color (either user-input or randomly generated)
     const baseHexColor = baseColor || getRandomColor();
     const baseRgb = hexToRgb(baseHexColor);
 
-    // Randomly select a color harmony method
-    const methods = ['complementary', 'split-complementary', 'triadic', 'tetradic', 'square'];
-    const method = methods[Math.floor(Math.random() * methods.length)];
-    let secondColorRgb, thirdColorRgb;
+    let colors = [baseRgb];  // Array to store all RGB values for distinctness checking
+    const harmonies = ['complementary', 'triadic', 'tetradic', 'square'];
 
-    // Generate the second color
-    switch (method) {
-        case 'complementary':
-            secondColorRgb = getComplementaryColor(baseRgb);
-            break;
-        case 'split-complementary':
-            [secondColorRgb] = getSplitComplementaryColors(baseRgb);
-            break;
-        case 'triadic':
-            [secondColorRgb] = getTriadicColors(baseRgb);
-            break;
-        case 'tetradic':
-            [secondColorRgb] = getTetradicColors(baseRgb);
-            break;
-        case 'square':
-            [secondColorRgb] = getSquareColors(baseRgb);
-            break;
-        default:
-            throw new Error('Unknown color scheme method');
-    }
+    // Generate second and third colors ensuring they are distinct from previous colors
+    const baseHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+    const secondRgb = generateHarmonyOptions(baseRgb, colors, baseHarmony);
+    colors.push(secondRgb);
 
-    // Generate the third color based on the second color
-    const nextMethod = methods[Math.floor(Math.random() * methods.length)];
-    switch (nextMethod) {
-        case 'complementary':
-            thirdColorRgb = getComplementaryColor(secondColorRgb);
-            break;
-        case 'split-complementary':
-            [, thirdColorRgb] = getSplitComplementaryColors(secondColorRgb);
-            break;
-        case 'triadic':
-            [, thirdColorRgb] = getTriadicColors(secondColorRgb);
-            break;
-        case 'tetradic':
-            [, thirdColorRgb] = getTetradicColors(secondColorRgb);
-            break;
-        case 'square':
-            [, , thirdColorRgb] = getSquareColors(secondColorRgb);
-            break;
-        default:
-            throw new Error('Unknown color scheme method');
-    }
+    const secondHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+    const thirdRgb = generateHarmonyOptions(secondRgb, colors, secondHarmony);
+    colors.push(thirdRgb);
 
-    const color1 = baseHexColor;
-    const color2 = rgbToHex(...secondColorRgb);
-    const color3 = rgbToHex(...thirdColorRgb);
+    const scheme = {
+        colors: colors.map(rgb => rgbToHex(...rgb)),
+        names: [
+            'Whisper of ' + getColorName(baseRgb),
+            'Echo of ' + getColorName(secondRgb),
+            'Shadow of ' + getColorName(thirdRgb)
+        ]
+    };
 
-    return [color1, color2, color3];
+    return scheme;
+}
+
+// Function to provide poetic color names based on HSL values
+function getColorName(rgb) {
+    const [h, s, l] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    const hue = Math.round(h * 360);
+    const names = [
+        "Crimson Twilight", "Golden Dusk", "Lime Zest", "Viridian Whisper",
+        "Ocean Depths", "Turquoise Dream", "Celestial Blue", "Royal Indigo",
+        "Mystic Purple", "Magenta Fire", "Rosy Dawn"
+    ];
+    const index = Math.floor(h * names.length);
+    return names[index % names.length] + (l < 0.5 ? " in Shadows" : " in Light");
 }
 
 // Example usage with a user-input base color or randomly generated one
 const userInputColor = null; // Replace with a hex color string if needed, e.g., '#FF5733'
 const colorScheme = generateColorScheme(userInputColor);
-console.log("Generated Color Scheme: ", colorScheme);
+
+// Iterating through the colorScheme object to print each color with its name
+for (let i = 0; i < colorScheme.colors.length; i++) {
+    console.log(`${colorScheme.names[i]}: ${colorScheme.colors[i]}`);
+}
+
+// Apply colors and names to HTML elements
+document.getElementById('color1').style.backgroundColor = colorScheme.colors[0];
+document.getElementById('color1').textContent = colorScheme.names[0];
+
+document.getElementById('color2').style.backgroundColor = colorScheme.colors[1];
+document.getElementById('color2').textContent = colorScheme.names[1];
+
+document.getElementById('color3').style.backgroundColor = colorScheme.colors[2];
+document.getElementById('color3').textContent = colorScheme.names[2];
