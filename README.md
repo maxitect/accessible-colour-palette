@@ -40,7 +40,7 @@ Colarity
 
 ### Relative Luminance
 With RGB colour:\
-L = 0.2126 * R + 0.7152 * G + 0.0722 * B\
+L = (0.2126 * (((R/255)+0.055)/1.055) ^ 2.4) + (0.7152 * (((G/255)+0.055)/1.055) ^ 2.4) + (0.0722 * (((B/255)+0.055)/1.055) ^ 2.4)\
 [More info here](https://www.w3.org/WAI/GL/wiki/Relative_luminance)
 
 ### Contrast Ratio
