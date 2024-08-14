@@ -23,6 +23,7 @@ class Colour {
         // Initialize LAB and luminance to null until filled by API
         this.lab = null;
         this.luminance = null;
+        this.textColour = null;
     }
 
     // Function to generate a random color in hexadecimal format
@@ -95,6 +96,7 @@ class Colour {
             };
             this.lab = colorData.lab;
             this.luminance = colorData.luminanceWCAG;
+            this.textColour = colorData.bestContrast;
 
         } catch (error) {
             console.error('Error fetching color data:', error);
@@ -125,9 +127,9 @@ function deltaE(colA, colB) {
 
 // Function to generate harmony options and ensure they are not too similar to existing colors
 async function generateNewColour(baseColour, existingColours) {
-    console.log(existingColours[0]);
     let [h, s, l] = [baseColour.hsl["h"], baseColour.hsl["s"], baseColour.hsl["l"]];
     const hueAdjust = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.25, 0.75, 1 / 3, 2 / 3];
+    const colourNum = existingColours.length + 1;
     let tries = 0;
     let newColour = new Colour();
   
@@ -150,14 +152,14 @@ async function generateNewColour(baseColour, existingColours) {
   
         if (distinct) {
             // If the color is distinct from all others, break the loop
-            console.log(`Colour ${tries+1} was successful.`)
+            console.log(`Colour ${colourNum}: Try ${tries+1} was successful.`)
             newColour = tempColour;
             break;
         } else if (tries === 29) {
-            console.log(`${tries+1} colours tried and failed similarity checks, random colour will be generated.`)
+            console.log(`Colour ${colourNum}: ${tries+1} colours tried and failed similarity checks, random colour will be generated.`)
             await newColour.fetchColorData();
         } else {
-            console.log(`Colour ${tries+1} failed as it was to similar to an existing colour, will try again.`)
+            console.log(`Colour ${colourNum}: Try ${tries+1} failed as it was to similar to an existing colour, will try again.`)
         }
   
         tries++; // Increment tries to prevent infinite loops
@@ -174,19 +176,21 @@ async function generateSwatch() {
     await colours[0].fetchColorData();
     document.getElementById('color1').style.backgroundColor = colours[0].hex;
     document.getElementById('color1').textContent = `${colours[0].name} \n ${colours[0].hex}`;
+    document.getElementById('color1').style.color = colours[0].textColour;
 
     tempColour = await generateNewColour(colours[0],colours);
     colours.push(tempColour);
     document.getElementById('color2').style.backgroundColor = colours[1].hex;
     document.getElementById('color2').textContent = `${colours[1].name} \n ${colours[1].hex}`;
+    document.getElementById('color2').style.color = colours[1].textColour;
 
     tempColour = await generateNewColour(colours[Math.ceil(Math.random())],colours);
     colours.push(tempColour);
     document.getElementById('color3').style.backgroundColor = colours[2].hex;
     document.getElementById('color3').textContent = `${colours[2].name} \n ${colours[2].hex}`;
-
-    console.log("first colour: ", colours[0], "second colour: ", colours[1], "third colour: ", colours[2]);
+    document.getElementById('color3').style.color = colours[2].textColour;
+    console.log(colours[1].textColour);
 }
 
 // Initialize colors on page load
-window.onload = generateSwatch;
+window.onload = generateSwatch();
