@@ -172,26 +172,21 @@ async function generateSwatch() {
     const colours =[];
     colours.push(new Colour({ hex: inputColour }));
     await colours[0].fetchColorData();
-
-    tempColour = await generateNewColour(colours[0],colours);
-    colours.push(tempColour);
-
-    tempColour = await generateNewColour(colours[Math.ceil(Math.random())],colours);
-    colours.push(tempColour);
-
-    console.log("first colour: ", colours[0], "second colour: ", colours[1], "third colour: ", colours[2]);
-
     document.getElementById('color1').style.backgroundColor = colours[0].hex;
     document.getElementById('color1').textContent = `${colours[0].name} \n ${colours[0].hex}`;
 
+    tempColour = await generateNewColour(colours[0],colours);
+    colours.push(tempColour);
     document.getElementById('color2').style.backgroundColor = colours[1].hex;
     document.getElementById('color2').textContent = `${colours[1].name} \n ${colours[1].hex}`;
 
+    tempColour = await generateNewColour(colours[Math.ceil(Math.random())],colours);
+    colours.push(tempColour);
     document.getElementById('color3').style.backgroundColor = colours[2].hex;
     document.getElementById('color3').textContent = `${colours[2].name} \n ${colours[2].hex}`;
-}
 
-generateSwatch();
+    console.log("first colour: ", colours[0], "second colour: ", colours[1], "third colour: ", colours[2]);
+}
 
 // Initialize colors on page load
 window.onload = generateSwatch;
