@@ -16,6 +16,13 @@ h1, h5 {
     font-weight: 300;
 }
 
+.input-container {
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .color-container {
     display: flex;
     width: 90%;
