@@ -1,83 +1,111 @@
-// Function to generate a random color in hexadecimal format
-function getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
+class Colour {
+    constructor({ hex = null, hsl = null } = {}) {
 
-// Function to convert hex color to RGB
-function hexToRgb(hex) {
-    hex = hex.replace('#', '');
-    const bigint = parseInt(hex, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return [r, g, b];
-}
-
-// Function to convert RGB to hex color
-function rgbToHex(r, g, b) {
-    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-}
-
-// Function to convert RGB to HSL
-function rgbToHsl(r, g, b) {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-
-    if (max === min) {
-        h = s = 0; // achromatic
-    } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
+        if (hex) {
+            // If initialized with hex
+            this.hex = hex;
+            this.rgb = null;
+            this.hsl = null;
+        } else if (hsl) {
+            // If initialized with HSL
+            this.hsl = hsl;
+            this.rgb = this.hslToRgb(hsl.h, hsl.s, hsl.l);
+            this.hex = this.rgbToHex(this.rgb.r, this.rgb.g, this.rgb.b);
+        } else {
+            this.hex = this.getRandomHex();
+            this.rgb = null;
+            this.hsl = null;
         }
-        h /= 6;
-    }
-    console.log(h);
-    return [h, s, l];
-}
 
-// Function to convert HSL to RGB
-function hslToRgb(h, s, l) {
-    let r, g, b;
+        // Initialise name to be filled by API call
+        this.name = null;
 
-    if (s === 0) {
-        r = g = b = l; // achromatic
-    } else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 3) return q;
-            if (t < 1 / 2) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1 / 3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1 / 3);
+        // Initialize LAB and luminance to null until filled by API
+        this.lab = null;
+        this.luminance = null;
     }
 
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    // Function to generate a random color in hexadecimal format
+    getRandomHex() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // Method to convert RGB to Hex
+    rgbToHex(r, g, b) {
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+    }
+
+    // Method to convert HSL to RGB
+    hslToRgb(h, s, l) {
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l; // achromatic
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+
+        return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+    }
+
+    // Method to fetch color data from the API and update properties
+    async fetchColorData() {
+        const cleanHex = this.hex.replace('#', '');
+        const apiUrl = `https://api.color.pizza/v1/${cleanHex}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            if (data.colors.length === 0) {
+                throw new Error('No colors found in the API response');
+            }
+
+            const colorData = data.colors[0];
+
+            // Update class properties with the API data
+            this.name = colorData.name;
+            this.hex = colorData.hex;
+            this.rgb = colorData.rgb;
+            this.hsl = {
+                h: colorData.hsl.h / 360,  // Normalizing hue value to [0,1] range
+                s: colorData.hsl.s / 100,  // Normalizing saturation to [0,1] range
+                l: colorData.hsl.l / 100   // Normalizing lightness to [0,1] range
+            };
+            this.lab = colorData.lab;
+            this.luminance = colorData.luminanceWCAG;
+
+        } catch (error) {
+            console.error('Error fetching color data:', error);
+        }
+    }
 }
 
 // Function to calculate the difference between 2 colours based on delta E
-function deltaE(rgbA, rgbB) {
-    let labA = rgbToLab(rgbA);
-    let labB = rgbToLab(rgbB);
+function deltaE(colA, colB) {
+    let labA = [colA.lab["l"], colA.lab["a"], colA.lab["b"]];
+    let labB = [colB.lab["l"], colB.lab["a"], colB.lab["b"]];
     let deltaL = labA[0] - labB[0];
     let deltaA = labA[1] - labB[1];
     let deltaB = labA[2] - labB[2];
@@ -93,111 +121,77 @@ function deltaE(rgbA, rgbB) {
     let deltaHkhsh = deltaH / (sh);
     let i = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
     return i < 0 ? 0 : Math.sqrt(i);
-  }
-  
-// Function to convert RGB to lab
-  function rgbToLab(rgb){
-    let r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, x, y, z;
-    r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
-    g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-    b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
-    x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
-    y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
-    z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
-    x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
-    y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
-    z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
-    return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)]
-  }
+}
 
 // Function to generate harmony options and ensure they are not too similar to existing colors
-function generateHarmonyOptions(baseRgb, existingColors) {
-    const [h, s, l] = rgbToHsl(baseRgb[0], baseRgb[1], baseRgb[2]);
-    const hueAdjust = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.25, 0.75, 1/3, 2/3];
-    let newColour, tries = 0;
-
-    while (tries < 20) {
-        console.log(tries);
-        newColour = hslToRgb((h + hueAdjust[Math.floor(Math.random() * hueAdjust.length)]) % 1, s, l);
+async function generateNewColour(baseColour, existingColours) {
+    console.log(existingColours[0]);
+    let [h, s, l] = [baseColour.hsl["h"], baseColour.hsl["s"], baseColour.hsl["l"]];
+    const hueAdjust = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.25, 0.75, 1 / 3, 2 / 3];
+    let tries = 0;
+    let newColour = new Colour();
+  
+    while (tries < 30) {
+        h = ((h + hueAdjust[Math.floor(Math.random() * hueAdjust.length)]) % 1);
+        //PROBLEM!
+        let tempColour = new Colour({
+            hsl: { h: h, s: s, l: l }
+        });
+        await tempColour.fetchColorData();
         let distinct = true; // Assume the new color is distinct unless proven otherwise
-
+  
         // Check the new color against all existing colors
-        for (let i = 0; i < existingColors.length; i++) {
-            if (deltaE(newColour, existingColors[i]) <= 40) {
+        for (let i = 0; i < existingColours.length; i++) {
+            if (deltaE(tempColour, existingColours[i]) <= 25) {
                 distinct = false; // If similar, mark as not distinct
                 break; // Stop checking as one failure is enough to retry
             }
         }
-
+  
         if (distinct) {
             // If the color is distinct from all others, break the loop
+            console.log(`Colour ${tries+1} was successful.`)
+            newColour = tempColour;
             break;
+        } else if (tries === 29) {
+            console.log(`${tries+1} colours tried and failed similarity checks, random colour will be generated.`)
+            await newColour.fetchColorData();
+        } else {
+            console.log(`Colour ${tries+1} failed as it was to similar to an existing colour, will try again.`)
         }
-
+  
         tries++; // Increment tries to prevent infinite loops
     }
-
-    return tries < 20 ? newColour : hexToRgb(getRandomColor());
+  
+    return newColour;
 }
 
-// Function to generate a color scheme
-function generateColorScheme(baseColor = null) {
-    const baseHexColor = baseColor || getRandomColor();
-    const baseRgb = hexToRgb(baseHexColor);
 
-    let colors = [baseRgb];  // Array to store all RGB values for distinctness checking
-    const harmonies = ['complementary', 'triadic', 'tetradic', 'hue'];
+async function generateSwatch() {
+    const inputColour = document.getElementById('inputColor').value;
+    const colours =[];
+    colours.push(new Colour({ hex: inputColour }));
+    await colours[0].fetchColorData();
 
-    // Generate second and third colors ensuring they are distinct from previous colors
-    //const baseHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
-    const secondRgb = generateHarmonyOptions(baseRgb, colors);
-    colors.push(secondRgb);
+    tempColour = await generateNewColour(colours[0],colours);
+    colours.push(tempColour);
 
-    //const secondHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
-    const thirdRgb = generateHarmonyOptions(colors[Math.floor(Math.random()*colors.length)], colors);
-    colors.push(thirdRgb);
+    tempColour = await generateNewColour(colours[Math.ceil(Math.random())],colours);
+    colours.push(tempColour);
 
-    const scheme = {
-        colors: colors.map(rgb => rgbToHex(...rgb)),
-        names: [
-            getColorName(baseRgb),
-            getColorName(secondRgb),
-            getColorName(thirdRgb)
-        ]
-    };
+    console.log("first colour: ", colours[0], "second colour: ", colours[1], "third colour: ", colours[2]);
 
-    return scheme;
+    document.getElementById('color1').style.backgroundColor = colours[0].hex;
+    document.getElementById('color1').textContent = `${colours[0].name} \n ${colours[0].hex}`;
+
+    document.getElementById('color2').style.backgroundColor = colours[1].hex;
+    document.getElementById('color2').textContent = `${colours[1].name} \n ${colours[1].hex}`;
+
+    document.getElementById('color3').style.backgroundColor = colours[2].hex;
+    document.getElementById('color3').textContent = `${colours[2].name} \n ${colours[2].hex}`;
 }
 
-// Function to provide poetic color names based on HSL values
-function getColorName(rgb) {
-    const [h, s, l] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
-    const hue = Math.round(h * 360);
-    const names = [
-        "Crimson Twilight", "Golden Dusk", "Lime Zest", "Viridian Whisper",
-        "Ocean Depths", "Turquoise Dream", "Celestial Blue", "Royal Indigo",
-        "Mystic Purple", "Magenta Fire", "Rosy Dawn"
-    ];
-    const index = Math.floor(h * names.length);
-    return names[index % names.length] + (l < 0.5 ? " in Shadows" : " in Light");
-}
+generateSwatch();
 
-// Example usage with a user-input base color or randomly generated one
-const userInputColor = null; // Replace with a hex color string if needed, e.g., '#FF5733'
-const colorScheme = generateColorScheme(userInputColor);
-
-// Iterating through the colorScheme object to print each color with its name
-for (let i = 0; i < colorScheme.colors.length; i++) {
-    const rgbCol = hexToRgb(colorScheme.colors[i]);
-    console.log(`${colorScheme.names[i]}: ${colorScheme.colors[i]} ${rgbToHsl(rgbCol[0],rgbCol[1],rgbCol[2])}`);
-}
-
-// Apply colors and names to HTML elements
-document.getElementById('color1').style.backgroundColor = colorScheme.colors[0];
-document.getElementById('color1').textContent = colorScheme.names[0];
-
-document.getElementById('color2').style.backgroundColor = colorScheme.colors[1];
-document.getElementById('color2').textContent = colorScheme.names[1];
-
-document.getElementById('color3').style.backgroundColor = colorScheme.colors[2];
-document.getElementById('color3').textContent = colorScheme.names[2];
+// Initialize colors on page load
+window.onload = generateSwatch;
