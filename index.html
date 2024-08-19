@@ -15,14 +15,28 @@
             <h1>Colarity</h1>
             <h5>Color Schemes with Clear Contrast.</h5>
         </header>
+        <label for="wcag-select">Select level of WCAG accessibility compliance:</label>
+        <select id="wcag-select">
+            <option value="WCAG A">WCAG A</option>
+            <option value="WCAG AA" selected>WCAG AA</option>
+            <option value="WCAG AAA">WCAG AAA</option>
+        </select>
+        <label for="inputColor">Enter hex colour to base swatch generation on (optional)</label>
         <div class="input-container">
-            <input type="text" id="inputColor" placeholder="Enter a hex color (e.g., #ff6347)">
+            <input type="text" id="inputColor" placeholder="Enter a hex colour (e.g., #ff6347)">
             <button onclick="generateSwatch()">Generate Swatch</button>
         </div>
+        <label>Colour swatch with contrasting colour(s)</label>
         <div class="color-container">
             <div class="color-box" id="color1"></div>
             <div class="color-box" id="color2"></div>
             <div class="color-box" id="color3"></div>
+            <div class="color-box" id="color4"></div>
+            <div class="color-box" id="color5"></div>
+        </div>
+        <div class="color-container">
+            <div class="color-box" id="contrast1"></div>
+            <div class="color-box" id="contrast2"></div>
         </div>
         <script type="text/javascript" src="js/colour-generator.js"></script>
     </body> 
