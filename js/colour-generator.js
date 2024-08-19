@@ -336,14 +336,16 @@ function calculateLuminanceRange(colours, targetRatio) {
 
     // Calculate the lower bound for light colors (luminances >= 0.5)
     if (luminancesLight.length > 0) {
-        luminance["light"] = Math.min(1, Math.min(...luminancesLight.map(L => (L + 0.05) / targetRatio - 0.05)));
+        console.log("light lum: ", (Math.min(...luminancesLight) + 0.05 - 0.05*targetRatio) / targetRatio);
+        luminance["light"] = (Math.min(...luminancesLight) + 0.05 - 0.05*targetRatio) / targetRatio;
     } else {
         luminance["light"] = 0; // Any color would contrast sufficiently if there are no light colors
     }
 
     // Calculate the upper bound for dark colors (luminances < 0.5)
     if (luminancesDark.length > 0) {
-        luminance["dark"] = Math.max(0, Math.max(...luminancesDark.map(L => targetRatio * (L + 0.05) - 0.05)));
+        console.log("dark lum: ", targetRatio*Math.max(...luminancesDark) + 0.05*(targetRatio-1));
+        luminance["dark"] = targetRatio*Math.max(...luminancesDark) + 0.05*(targetRatio-1);
     } else {
         luminance["dark"] = 1; // Any color would contrast sufficiently if there are no dark colors
     }
@@ -418,9 +420,9 @@ async function generateSwatch() {
         await coloursContrast[1].iterateRgbForLuminance(luminanceTargets["light"]);
     } else {
         console.log("no good contrast colours found, use black and white");
-        coloursContrast.push(new Colour({ hex: "#000000" }));
-        await coloursContrast[0].fetchColorData();
         coloursContrast.push(new Colour({ hex: "#ffffff" }));
+        await coloursContrast[0].fetchColorData();
+        coloursContrast.push(new Colour({ hex: "#000000" }));
         await coloursContrast[1].fetchColorData();
     }
 
