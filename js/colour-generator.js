@@ -286,13 +286,13 @@ async function generateNewColour(colours) {
   
         // Check the new color against all existing colors
         for (let i = 0; i < colours.length; i++) {
-            if (deltaE(tempColour, colours[i]) <= 25) {
+            if ((deltaE(tempColour, colours[i]) <= 20)||(tempColour.hex == colours[i].hex)) {
                 distinct = false; // If similar, mark as not distinct
                 break; // Stop checking as one failure is enough to retry
             }
         }
   
-        if (distinct) {
+        if ((distinct)&&(tempColour.luminance < unachievableLuminanceRange["min"]||tempColour.luminance > unachievableLuminanceRange["max"])) {
             // If the color is distinct from all others, break the loop
             console.log(`Colour ${colourNum}: Try ${tries+1} was successful.`)
             newColour = tempColour;
@@ -319,7 +319,6 @@ function calculateLuminanceRange(colours, targetRatio) {
     console.log("target ratio used: ", targetRatio);
     const luminancesLight = [];
     const luminancesDark = [];
-    const luminanceCutoff = 0.1791;
 
     // Split the luminances into light and dark categories
     for (const i in colours) {
@@ -336,7 +335,6 @@ function calculateLuminanceRange(colours, targetRatio) {
 
     // Calculate the lower bound for light colors (luminances >= 0.5)
     if (luminancesLight.length > 0) {
-        console.log("light lum: ", (Math.min(...luminancesLight) + 0.05 - 0.05*targetRatio) / targetRatio);
         luminance["light"] = (Math.min(...luminancesLight) + 0.05 - 0.05*targetRatio) / targetRatio;
     } else {
         luminance["light"] = 0; // Any color would contrast sufficiently if there are no light colors
@@ -344,7 +342,6 @@ function calculateLuminanceRange(colours, targetRatio) {
 
     // Calculate the upper bound for dark colors (luminances < 0.5)
     if (luminancesDark.length > 0) {
-        console.log("dark lum: ", targetRatio*Math.max(...luminancesDark) + 0.05*(targetRatio-1));
         luminance["dark"] = targetRatio*Math.max(...luminancesDark) + 0.05*(targetRatio-1);
     } else {
         luminance["dark"] = 1; // Any color would contrast sufficiently if there are no dark colors
@@ -360,6 +357,12 @@ function calculateLuminanceRange(colours, targetRatio) {
 let targetRatio = 4.5;
 let lightContrastProportion = 0;
 let darkContrastProportion = 0;
+let unachievableLuminanceRange = {
+    min: 1,
+    max: 0
+};
+let divRemoved = false;
+let divHtml = null;
 
 document.addEventListener("DOMContentLoaded", function() {
     const wcagSelect = document.getElementById("wcag-select");
@@ -378,17 +381,50 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             targetRatio = 7;
         }
+        unachievableLuminanceRange = calculateUnachievableLuminanceRange(targetRatio);
         // You can now use wcagSelect.value as needed
     });
 });
 
+function calculateUnachievableLuminanceRange(targetRatio) {
+    // Calculate the upper bound for when the luminance is the lighter color (L1)
+    const upperBoundL1 = targetRatio * 0.05 - 0.05;
+
+    // Calculate the lower bound for when the luminance is the darker color (L2)
+    const lowerBoundL2 = (1 + 0.05) / targetRatio - 0.05;
+
+    // If the bounds overlap or are invalid, return null
+    if (lowerBoundL2 >= upperBoundL1) {
+        return {
+            min: 1,
+            max: 0
+        }; // All colors can achieve the contrast ratio
+    }
+
+    // Otherwise, return the range that cannot achieve the contrast ratio
+    return {
+        min: lowerBoundL2,
+        max: upperBoundL1
+    };
+}
+
 async function generateSwatch() {
     console.log("target ratio is: ", targetRatio);
+    let tries = 0;
     const inputColour = "";
     let colours =[];
-    colours.push(new Colour({ hex: inputColour }));
-    await colours[0].fetchColorData();
-
+    while (tries<30) {
+        tempColour = new Colour({ hex: inputColour });
+        await tempColour.fetchColorData();
+        if (tempColour.luminance > unachievableLuminanceRange["min"] && tempColour.luminance < unachievableLuminanceRange["max"]) {
+            console.log(`Colour 1: Try ${tries+1} colour generated would not achieve the required contrast with any colour.`);
+        } else {
+            console.log(`Colour 1: Try ${tries+1} success.`);
+            colours.push(tempColour);
+            break;
+        }
+    }
+    
     for (i=0;i<4;i++) {
         colours = await generateNewColour(colours);
     }
@@ -425,17 +461,31 @@ async function generateSwatch() {
         coloursContrast.push(new Colour({ hex: "#000000" }));
         await coloursContrast[1].fetchColorData();
     }
-
-    for (i=0;i<coloursContrast.length;i++) {
-        document.getElementById('contrast'+(i+1)).style.backgroundColor = coloursContrast[i].hex;
-        document.getElementById('contrast'+(i+1)).textContent = `${coloursContrast[i].name} \n ${coloursContrast[i].hex}`;
-        document.getElementById('contrast'+(i+1)).style.color = coloursContrast[i].textColour;
-        if (coloursContrast.length == 1) {
+    console.log("dark colours: ", darkContrastProportion);
+    console.log("light colours: ", lightContrastProportion);
+    if (lightContrastProportion == 0 || darkContrastProportion == 0) {
+        if (!divRemoved) {
+            divHtml = document.getElementById('contrast2').outerHTML;
             document.getElementById('contrast2').remove();
-        } else if (i === 0) {
-            document.getElementById('contrast'+(i+1)).style.flexGrow = lightContrastProportion;
-        } else {
-            document.getElementById('contrast'+(i+1)).style.flexGrow = darkContrastProportion;
+            divRemoved = true;
+        }
+        document.getElementById('contrast1').style.backgroundColor = coloursContrast[0].hex;
+        document.getElementById('contrast1').textContent = `${coloursContrast[0].name} \n ${coloursContrast[0].hex}`;
+        document.getElementById('contrast1').style.color = coloursContrast[0].textColour;
+    } else {
+        if (divRemoved) {
+            const container = document.querySelectorAll('.color-container')[1];
+            container.insertAdjacentHTML('beforeend', divHtml); // Reinsert the stored HTML
+            removedElement = null; // Clear the stored element to avoid duplication
+            divRemoved = false;
+        }
+        document.getElementById('contrast1').style.flexGrow = lightContrastProportion;
+        document.getElementById('contrast2').style.flexGrow = darkContrastProportion;
+        for (i=0;i<coloursContrast.length;i++) {
+            console.log(coloursContrast[i]);
+            document.getElementById('contrast'+(i+1)).style.backgroundColor = coloursContrast[i].hex;
+            document.getElementById('contrast'+(i+1)).textContent = `${coloursContrast[i].name} \n ${coloursContrast[i].hex}`;
+            document.getElementById('contrast'+(i+1)).style.color = coloursContrast[i].textColour;
         }
     }
 }
