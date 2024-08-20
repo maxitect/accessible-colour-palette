@@ -425,7 +425,7 @@ async function generateSwatch() {
         }
     }
     
-    for (i=0;i<4;i++) {
+    for (i=0;i<3;i++) {
         colours = await generateNewColour(colours);
     }
 
