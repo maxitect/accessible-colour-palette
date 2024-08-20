@@ -4,6 +4,10 @@
 
 A colour palette generator that takes accessibility into account, giving the user the option to select a level of compliance between WCAG A / AA / AAA to aim for, and producing a colour palette that meets those requirements.
 
+The palette itself is formed of 4 main colours, and then 1 or 2 high contrast colours in order to cover all the colours in the main palette based on the contrast ratio set by the WCAG level of compliance. These are 3:1 for WCAG A, 4.5:1 for WCAG AA and 7:1 for WCAG AAA.
+
+The user should be able to input a colour or colours for which to base the palette on and possibly have the ability to lock certain colours and regenerate other colours in the palette based on the locked colours.
+
 ## Website Name Options
 
 ### Current selection
