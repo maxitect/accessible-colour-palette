@@ -15,7 +15,7 @@ class Colour {
             this.luminance = this.rgbToLuminance(this.rgb);
         } else if (!input) {
             // If initialised with no input
-            this.hsl = { h: this.randomInRange(0, 1), s: this.randomInRange(0.5, 1), l: this.randomInRange(0.2, 0.8) }
+            this.hsl = { h: this.randomInRange(0, 1), s: this.randomInRange(0.6, 1), l: this.randomInRange(0.3, 0.7) }
             this.rgb = this.hslToRgb(this.hsl);
             this.hex = this.rgbToHex(this.rgb);
             this.luminance = this.rgbToLuminance(this.rgb);
