@@ -1,5 +1,3 @@
-const Colour = require("./colourConstructor");
-
 class Palette {
   constructor(targetRatio, numberOfColours, ...colours) {
     this.targetRatio = targetRatio;
@@ -44,7 +42,7 @@ class Palette {
         const tempColour = new Colour({ h, s, l });
 
         // Check if the new colour is distinct
-        if (Math.min(...this.colourDistances(tempColour)) <= 10) {
+        if (Math.min(...this.colourDistances(tempColour)) <= 8) {
           tries++;
           continue;
         }

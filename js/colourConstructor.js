@@ -354,8 +354,6 @@ class Colour {
   }
 }
 
-module.exports = Colour;
-
 const colour1 = new Colour("#979ac4");
 console.log("colour initialised with hex");
 console.log("hex: " + colour1.hex);

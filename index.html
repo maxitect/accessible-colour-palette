@@ -1,42 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Colarity: Color Schemes with Clear Contrast.</title>
-        <link rel="icon" type="image/x-icon" href="favicon.svg">
-        <link rel="stylesheet" href="styles.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <header>
-            <h1>Colarity</h1>
-            <h5>Color Schemes with Clear Contrast.</h5>
-        </header>
-        <label for="wcag-select">Select level of WCAG accessibility compliance:</label>
-        <select id="wcag-select">
-            <option value="WCAG A">WCAG A</option>
-            <option value="WCAG AA" selected>WCAG AA</option>
-            <option value="WCAG AAA">WCAG AAA</option>
-        </select>
-        <label for="inputColor">Enter hex colour to base swatch generation on (optional)</label>
-        <div class="input-container">
-            <input type="text" id="inputColor" placeholder="Enter a hex colour (e.g., #ff6347)">
-            <button onclick="generateSwatch()">Generate Swatch</button>
-        </div>
-        <label>Colour swatch with contrasting colour(s)</label>
-        <div class="color-container">
-            <div class="color-box" id="color1"></div>
-            <div class="color-box" id="color2"></div>
-            <div class="color-box" id="color3"></div>
-            <div class="color-box" id="color4"></div>
-        </div>
-        <div class="color-container">
-            <div class="color-box" id="contrast1"></div>
-            <div class="color-box" id="contrast2"></div>
-        </div>
-        <script type="text/javascript" src="js/colour-generator.js"></script>
-    </body> 
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Colarity: Color Schemes with Clear Contrast.</title>
+    <link rel="icon" type="image/x-icon" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      type="text/javascript"
+      src="./js/colourConstructor.js"
+      defer
+    ></script>
+    <script
+      type="text/javascript"
+      src="./js/paletteConstructor.js"
+      defer
+    ></script>
+    <script
+      type="text/javascript"
+      src="./js/paletteGenerator.js"
+      defer
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1>Colarity</h1>
+      <h5>Color Schemes with Clear Contrast.</h5>
+    </header>
+    <label for="wcag-select"
+      >Select level of WCAG accessibility compliance:</label
+    >
+    <select id="wcag-select">
+      <option value="WCAG A">WCAG A</option>
+      <option value="WCAG AA" selected>WCAG AA</option>
+      <option value="WCAG AAA">WCAG AAA</option>
+    </select>
+    <label for="inputColor"
+      >Enter hex colour to base swatch generation on (optional)</label
+    >
+    <div class="input-container">
+      <input
+        type="text"
+        id="inputColor"
+        placeholder="Enter a hex colour (e.g., #ff6347)"
+      />
+      <button onclick="paletteGenerator()">Generate Swatch</button>
+    </div>
+    <label>Colour swatch with contrasting colour(s)</label>
+    <div class="color-container">
+      <div class="color-box" id="color1"></div>
+      <div class="color-box" id="color2"></div>
+      <div class="color-box" id="color3"></div>
+      <div class="color-box" id="color4"></div>
+    </div>
+    <div class="color-container">
+      <div class="color-box" id="contrast1"></div>
+      <div class="color-box" id="contrast2"></div>
+    </div>
+  </body>
 </html>
